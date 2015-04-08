@@ -124,6 +124,8 @@ console.dir(baseRef);
   &ltinput type="text" id="message" placeholder="Something witty here..."&gt&lt/input&gt
 &lt/div&gt</code></pre>
 
+	  <blockquote>You'll probably want to add some style via main.css. Don't have the time? Just look in the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-02">step-02</a> folder for some sample CSS to get you started.</blockquote>
+
       <p>Now we grab a reference to the <i>messages</i> child from Firebase.</p>
 
       <pre><code>var messagesRef = baseRef.child("messages");</code></pre>
@@ -152,7 +154,7 @@ var nameField = $("#name");</code></pre>
       
       <p>Our messages are now being sync with Firebase.</p>
 
-      <p><blockquote>To verify the messages are being sent, go directly to your Firebase url in your browser.  This is the Firebase Dashboard where you can view / edit your existing data.</blockquote></p>
+      <blockquote>To verify the messages are being sent, go directly to your Firebase url in your browser.  This is the Firebase Dashboard where you can view / edit your existing data.</blockquote>
 
       <p>The chat window is pretty empty.  How about we remedy that.  Using our reference to messages we'll use the query <i>child_added</i>.  This allows us to subscribe to whenever a child is added at the given endpoint.  We also want to limit the number of children we get by using <i>limitToLast</i>.  This fetches the last x number of records that were added.  Within the method we're given access to the snapshot variable.  This contains an important method <i>val()</i>.  This is the object that was added.  From there we can grab the pertinent data and add it to our chat window.</p>
 
@@ -177,7 +179,7 @@ var nameField = $("#name");</code></pre>
 
       <p>You now have a working chat.  Try entering a few messages.  You should see the messages appear in the chat window.  Also, if you reload the page you will notice that your chat window contains the same messages as before.</p>
 
-      <p><blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-02">step-02</a> folder for a solution.</blockquote></p>
+      <blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-02">step-02</a> folder for a solution.</blockquote>
 
       <h3>
         <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
