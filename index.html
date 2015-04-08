@@ -296,17 +296,29 @@ var nameField = $("#name");</code></pre>
 
       <blockquote>Tip: The transaction code is based on the player assignment example: <a href="https://gist.github.com/anantn/4323981">firebase_player_assignment.js</a>. For more information on Firebase transactions see <a href="https://www.firebase.com/docs/web/api/firebase/transaction.html">Firebase.transaction()</a>.</blockquote>
 
-      <p>Let's also make sure we add the call to the updated init function in our document ready function.</p>
+      <p>One this you probably noticed is that, where exactly is userId coming from? How is it in localStorage and what is it's purpose? We need some means to uniquely identify each player beyond the name they decide to enter. In this case, we'll add some code to our <code>$(document).ready()</code>:</p>
 
-      <pre><code>//
+<pre><code>var userId;
+
+  if (localStorage.getItem('userId') === null) {
+    userId = 'user' + parseInt(Math.random() * 1000, 10) + Date.now();
+    localStorage.setItem('userId', userId);
+  } else {
+    userId = localStorage.getItem('userId');
+  }  
+</code></pre>
+
+      <p>Let's also make sure we add the call to our <code>init()</code> function in our <code>$(document).ready()</code>:</p>
+
+<pre><code>//
 //  Initialize the game state
 //
 fireHangman.init(baseRef);        
-      </code></pre>
+</code></pre>
 
-      <p>Lastly, we need to give our game a way to communicate with our players.  Notice we're using the same process as the chat messages are being handled.
+      <p>Lastly, we need to give our game a way to communicate with our players. Let's create a private method in our class called <code>botSays()</code>. Notice we're using the same process to send message to our chat window via Firebase:</p>
 
-      <pre><code>botSays = function(message) {
+<pre><code>botSays = function(message) {
   var payload = {
     name: '** FIREBOT **',
     message: message
@@ -314,7 +326,7 @@ fireHangman.init(baseRef);
   messagesRef.push(payload);
 };</code></pre>
 
-      <p><blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-03">step-03</a> folder for a solution.</blockquote></p>
+      <blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-03">step-03</a> folder for a solution.</blockquote>
 
       <h3>
         <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
@@ -322,7 +334,7 @@ fireHangman.init(baseRef);
         </a>Defining our start() method
       </h3>
 
-      <p>Now that we have the basics of our player setup, we can now begin building the methods to start our game. First things first: we need some words. For this codelab, we can simply add words as a child to our tree. We can use the following data stucture as a sample:</p>
+      <p>Now that we have the basics of our player setup, we can now begin building the methods to start our game. First things first: we need some words. For this codelab, we can simply add words as a child to our tree. We can use the following data structure as a sample:</p>
       
 <pre><code>{
   "hint": "One of the co-founders of Firebase in 2011.",
@@ -497,7 +509,7 @@ gameChild.on('child_changed', function(snapshot) {
     ...
 </code></pre>
 
-      <p><blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-04">step-04</a> folder for a solution.</blockquote></p>
+      <blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-04">step-04</a> folder for a solution.</blockquote>
 
       <h3>
         <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
@@ -648,7 +660,7 @@ if(e.keyCode === 13) {
   ....
 </code></pre>
       
-      <p><blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-03">step-05</a> folder for a solution.</blockquote></p>
+      <blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-03">step-05</a> folder for a solution.</blockquote>
       
       <h3>
         <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
