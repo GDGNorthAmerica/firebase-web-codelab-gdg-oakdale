@@ -1,0 +1,684 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Firebase Codelab</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Firebase Web Codelab - Hangman on Fire</h1>
+        <p>Getting started using Firebase Web Platform as seen at a April 2015 meetup at GDG Oakdale.</p>
+        <ul>
+          <li><a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/archive/master.zip">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/archive/master.tar.gz">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h3>
+          <a id="welcome" class="anchor" href="#welcome" aria-hidden="true">
+            <span class="octicon octicon-link"></span>
+          </a>Welcome!
+        </h3>
+        <p>This codelab is designed to help you learn about using Firebase. During this lab, we're going to build a varition of the classic game Hangman.</p>
+        
+        <h3>
+          <a id="things-we-use" class="anchor" href="#things-we-use" aria-hidden="true">
+            <span class="octicon octicon-link"></span>
+          </a>Things we'll use
+        </h3>
+        <p>Documentation! You can never have enough of it and during this codelab you may find yourself looking for one more method to go that extra mile. Docs you may find useful include:</p>
+        
+        <ul>
+          <li><a href="https://www.firebase.com/docs/web/">Firebase Web Platform Documentation</a></li>
+          <li><a href="http://bower.io/#install-bower">Bower documentation</a></li>
+        </ul>
+        
+        <h3>
+          <a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true">
+            <span class="octicon octicon-link"></span>
+          </a>Getting started
+        </h3>
+        
+        <p>Now, let's start by creating a directory for our application:</p>
+<pre><code>➜ ~ mkdir my-firebase-game
+➜ ~ cd my-firebase-game
+</code></pre>
+
+        <p>Next, we need to create a few basic files:</p>
+        
+<pre><code>➜ ~ touch index.html
+➜ ~ touch css/main.css
+➜ ~ touch js/app.js
+</code></pre>
+
+        <p>Now that we have a few files, let's add some basic markup to our html:</p>
+        
+<pre><code>&lthtml lang="en"&gt
+&lthead&gt
+  &ltmeta charset="utf-8"&gt
+  &ltmeta name="viewport" content="width=device-width, initial-scale=1"&gt
+  &lttitle&gtFire Hangman&lt/title&gt
+  &ltlink rel="stylesheet" href="css/main.css"&gt
+&lt/head&gt
+&ltbody&gt
+  &ltdiv class="container"&gt
+    &lth1 id="header"&gtHangman on Fire&lt/h1&gt
+  &lt/div&gt
+  &ltscript src='https://cdn.firebase.com/js/client/2.2.1/firebase.js'&gt&lt/script&gt
+  &lt;script src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js&quot;&gt;&lt;/script&gt;t
+  &ltscript src="js/app.js"&gt&lt/script&gt
+&lt/body&gt
+&lt/html&gt&lt</code></pre>
+
+        <p>You'll note we added in the CDN script link to the Firebase library as well as the most recent jQuery.</p>
+
+        <blockquote>Tip: we can also use <code>bower install firebase</code> as well.</blockquote>
+
+        <p>Now, let's create a new project within our Firebase account:</p>
+        
+        <img src="images/screenshot-20150408-create-app.png" alt="Create app in dashboard">
+
+        <p>Now that we have an endpoint, let's wire up some of our JavaScript in app.js:</p>
+
+<pre><code>var baseRef = new Firebase("{ Your Firebase URL }");
+console.dir(baseRef);
+</code></pre>
+
+        <p>Let's make sure things are working by running our code:</p>
+
+<pre><code>➜ ~ python -m SimpleHTTPServer 4001
+</code></pre>
+
+        <p>And browse to http://localhost:4001/, open Chrome Dev Tools and you should see something like:</p>
+        
+        <img src="images/screenshot-20150408-firebase-hooked.png" alt="Dev Tools showing output">
+
+        <p>We can see that we're talking to Firebase and we're on the right track. Now let's start building.</p>
+
+        <p><blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-01">step-01</a> folder for a solution.</blockquote></p>
+
+      <h3>
+        <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Every game needs a chat
+      </h3>
+      
+      <p>Let's start with the markup:</p>
+
+      <pre><code>&ltdiv id="nameRow"&gt
+  &ltlabel for="name"&gtName:&lt/label&gt&ltinput type="text" id="name"&gt&lt/input&gt
+&lt/div&gt
+&ltdiv id="chatWindow"&gt
+  &ltul id="messageList"&gt&lt/ul&gt
+&lt/div&gt
+&ltdiv&gt
+  &ltinput type="text" id="message" placeholder="Something witty here..."&gt&lt/input&gt
+&lt/div&gt</code></pre>
+
+      <p>Now we grab a reference to the <i>messages</i> child from Firebase.</p>
+
+      <pre><code>var messagesRef = baseRef.child("messages");</code></pre>
+      
+      <p>We'll also need references to various elements.</p>
+
+      <pre><code>var chatWindow = $("#chatWindow");
+var messageField = $("#message");
+var messageList = $("#messageList");
+var nameField = $("#name");</code></pre>
+
+      <p>We now need to listen for the user's input.  When the user hits the enter key we'll take the user's name and their message and push it to Firebase.</p>
+
+      <pre><code>messageField.on('keypress', function(e) {
+  if(e.keyCode === 13) {
+    var message = {
+      name: nameField.val(),
+      message: messageField.val()
+    };
+
+    messagesRef.push(message);
+
+    messageField.val('');
+  }
+});</code></pre>
+      
+      <p>Our messages are now being sync with Firebase.</p>
+
+      <p><blockquote>To verify the messages are being sent, go directly to your Firebase url in your browser.  This is the Firebase Dashboard where you can view / edit your existing data.</blockquote></p>
+
+      <p>The chat window is pretty empty.  How about we remedy that.  Using our reference to messages we'll use the query <i>child_added</i>.  This allows us to subscribe to whenever a child is added at the given endpoint.  We also want to limit the number of children we get by using <i>limitToLast</i>.  This fetches the last x number of records that were added.  Within the method we're given access to the snapshot variable.  This contains an important method <i>val()</i>.  This is the object that was added.  From there we can grab the pertinent data and add it to our chat window.</p>
+
+      <pre><code>messagesRef.limitToLast(20).on('child_added', function (snapshot) {
+  //GET DATA
+  var data = snapshot.val();
+  var name = data.name || "anonymous";
+  var message = data.message;
+
+  //CREATE ELEMENTS MESSAGE & SANITIZE TEXT
+  var messageElement = $("&ltli&gt");
+  var nameElement = $("&ltlabel&gt&lt/label&gt");
+  nameElement.text(name);
+  messageElement.text(message).prepend(nameElement);
+
+  //ADD MESSAGE
+  messageList.append(messageElement)
+
+  //SCROLL TO BOTTOM OF MESSAGE LIST
+  chatWindow[0].scrollTop = chatWindow[0].scrollHeight;
+});</code></pre>
+
+      <p>You now have a working chat.  Try entering a few messages.  You should see the messages appear in the chat window.  Also, if you reload the page you will notice that your chat window contains the same messages as before.</p>
+
+      <p><blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-02">step-02</a> folder for a solution.</blockquote></p>
+
+      <h3>
+        <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Every game needs some rules
+      </h3>
+      
+      <p>How does one build our Hangman on Fire application? We need to lay some ground rules:</p>
+
+      <ol>
+        <li>The game will be seven (7) misses, at which point the game ends</li>
+        <li>If a player guesses a letter correctly, they continue.</li>
+        <li>If a player guesses a letter incorrectly, they concede their turn to the next player.</li>
+        <li>All players in the chat play.</li>
+      </ol>
+
+      <blockquote>Tip: We understand that you could do a lot of fancy things with this, but let's keep it simple to start!</blockquote>
+
+      <h3>
+        <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Defining our class
+      </h3>
+      
+      <p>We're going to build a class called <code>fireHangman</code> in JavaScript. For this codelab, we're going to use the Module pattern to make our life easier. If you don't know the pattern, don't worry, you can adapt the code as you see fit to your style.</p>
+
+      <blockquote>Tip: See Addy Osmani's explanation of the module pattern in his awesome book: <a href="http://addyosmani.com/resources/essentialjsdesignpatterns/book/#modulepatternjavascript">Learning JavaScript Design Patterns</a></blockquote>
+
+      <p>We can hash out the basic methods that we'll need:</p>
+
+      <ol>
+        <li>init() - get all our ducks in a row when our application starts</li>
+        <li>start() - start a game of Hangman on Fire</li>
+        <li>guess() - guess a letter</li>
+      </ol>
+
+      <p>What this looks like mocked out in code:</p>
+
+<pre><code>var fireHangman = (function () {
+  // private var 
+  var firebaseRef;
+
+  // private methods here
+
+  // return our public methods
+  return {
+    init: function(context) {
+      
+    },
+    start: function() {
+
+    },
+    guess: function(letter) {
+
+    }
+})();
+</code></pre>
+      
+      <p>This will help us get started. Now let's start building our Hangman on Fire game logic.</p>
+
+      <h3>
+        <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Defining our init() method
+      </h3>
+      
+      <p>Let's add additional variables to our <code>fireHangman</code> class.</p>
+
+      <pre><code>var firebaseRef,
+    messagesRef,
+    gameChild,       
+    gameRef,
+    playersRef,
+    playerList,
+    playerId,
+    userId;</code></pre>
+
+    <p>We need to initialize the variables we declared above.</p>
+
+      <pre><code>init: function(context) {
+  
+  // Our endpoint
+  firebaseRef = context;
+
+  // Setup some references
+  messagesRef = firebaseRef.child("messages");
+  playersRef = firebaseRef.child("players");
+  gameChild = firebaseRef.child("game");
+
+  userId = localStorage.getItem('userId');
+
+  // Define out players
+  playersRef.transaction(function(playerList) {
+    if (playerList === null) {
+      playerList = [];
+    }
+ 
+    for (var i = 0; i < playerList.length; i++) {
+      if (playerList[i] === userId) {
+        playerId = i;
+        return;
+      }
+    }
+
+    playerList[i] = userId;
+    playerId = i;
+    return playerList;
+  }, function (error, committed) {       
+      // Nothing Yet...who knows...maybe we'll use this later...maybe...
+  });
+}</code></pre>
+
+      <p>A new piece added above is using <code>transaction()</code>.  This allows us to ensure that our current player is either already in the player list, or we add that play to the playerList.</p>
+
+      <blockquote>Tip: The transaction code is based on the player assignment example: <a href="https://gist.github.com/anantn/4323981">firebase_player_assignment.js</a>. For more information on Firebase transactions see <a href="https://www.firebase.com/docs/web/api/firebase/transaction.html">Firebase.transaction()</a>.</blockquote>
+
+      <p>Let's also make sure we add the call to the updated init function in our document ready function.</p>
+
+      <pre><code>//
+//  Initialize the game state
+//
+fireHangman.init(baseRef);        
+      </code></pre>
+
+      <p>Lastly, we need to give our game a way to communicate with our players.  Notice we're using the same process as the chat messages are being handled.
+
+      <pre><code>botSays = function(message) {
+  var payload = {
+    name: '** FIREBOT **',
+    message: message
+  };
+  messagesRef.push(payload);
+};</code></pre>
+
+      <p><blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-03">step-03</a> folder for a solution.</blockquote></p>
+
+      <h3>
+        <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Defining our start() method
+      </h3>
+
+      <p>Now that we have the basics of our player setup, we can now begin building the methods to start our game. First things first: we need some words. For this codelab, we can simply add words as a child to our tree. We can use the following data stucture as a sample:</p>
+      
+<pre><code>{
+  "hint": "One of the co-founders of Firebase in 2011.",
+  "word": "Andrew Lee"
+}
+</code></pre>
+
+      <p>We could make a method to push this data, but we can use a cool feature of the Firebase dashboard and add/edit data on-the-fly:</p>
+      
+      <img src="images/screenshot-20150408-adding-data-manual.png" alt="Adding data through the dashboard">
+
+      <blockquote>Tip: Want to see your data in Chrome Dev Tools? Use Firebase's Chrome Extension, <a href="https://chrome.google.com/webstore/detail/vulcan-by-firebase/oippbnlmebalopjbkemajgfbglcjhnbl?hl=en">Vulcan</a></blockquote>
+
+      <p>Now that we have some data, we can pull that data for use in our init():</p>
+      
+<pre><code>wordsChild = firebaseRef.child("words");
+wordsChild.on('value', function(snapshot) {
+  if(snapshot.val() === null) {
+    console.log('Error: No Words in Firebase!');
+  } else {
+    wordRecords = snapshot.val();
+  }
+});
+</code></pre>
+
+      <p>Now we need some means to actually select a random word and start out game, so let's add a public method that we can call when a user initiates our game:</p>
+      
+<pre><code>start: function() {
+  // select a random word and update game state
+}
+</code></pre>
+
+      <p>As the comment above states, we need to select a random word. Since we've loaded our words into wordRecords, we handle this via:</p>
+      
+<pre><code>var keys = Object.keys(wordRecords);
+var randomNumber = Math.floor(Math.random() * keys.length);
+  
+selectedWord = wordRecords[keys[randomNumber]].word;
+selectedHint = wordRecords[keys[randomNumber]].hint;
+</code></pre>
+
+      <blockquote>Tip: Remember, our wordRecords is an Object. This is why we have to grab the keys first!</blockquote>
+  
+      <p>This only gets us half way there; we need some means to tell everyone who's playing our game what's going on. For this, we need to tell Firebase about the state of our game. Let's create an object with the information about the start of our game:</p>
+
+<pre><code>var gameState = {
+  word: selectedWord,
+  message: selectedHint,
+  wordState: blanks,
+  usedLetters: '',
+  turn: 0,
+  left: 7
+};
+</code></pre>
+
+      <p>Looking at our object, we can see that we're not just setting the word and message, but also some basic information about our game:</p>
+      
+      <ol>
+        <li>wordState - which signifies the letter replacements of our word</li>
+        <li>usedLetters - letters which people have guessed</li>
+        <li>turn - which player's turn is it</li>
+        <li>left - number of guesses left in the current game</li>
+      </ol>
+      
+      <p>With this object set, we can push to our game child and have the bot tell us a new game has started and that the first player is ready to guess:</p>
+      
+<pre><code>gameRef = gameChild.push();
+gameRef.set(gameState);
+
+botSays("New game started! Word/Phrase &lt;span class=&#039;blanks&#039;&gt;" + blanks + "&lt;/span&gt;");
+botSays("The current hint is:" + selectedHint);
+
+playersRef.child(0).once('value', function(snapshot) {
+  botSays("It's your turn " + snapshot.val() + "! Guess with /guess {{letter}}");
+});
+</code></pre>
+
+      <p>To make life simplier, we can group all this into a private function called setRandomWord():</p>
+      
+<pre><code>setRandomWord = function() {
+  var keys = Object.keys(wordRecords);
+  var randomNumber = Math.floor(Math.random() * keys.length);
+  
+  selectedWord = wordRecords[keys[randomNumber]].word;
+  selectedHint = wordRecords[keys[randomNumber]].hint;
+  console.log(selectedWord, selectedHint);
+  
+  // You'll need to implement setBlanksForWord()
+  var blanks = setBlanksForWord();
+
+  var gameState = {
+    word: selectedWord,
+    message: selectedHint,
+    wordState: blanks,
+    usedLetters: usedLetters,
+    turn: 0,
+    left: 7
+  };
+
+  gameRef = gameChild.push();
+  gameRef.set(gameState);
+
+  botSays("New game started! Word/Phrase &lt;span class=&#039;blanks&#039;&gt;" + blanks + "&lt;/span&gt;");
+  botSays("The current hint is:" + selectedHint);
+
+  playersRef.child(0).once('value', function(snapshot) {
+    botSays("It's your turn " + snapshot.val() + "! Guess with /guess {{letter}}");
+  });
+
+};
+</code></pre>
+
+      <p>We can now update our <code>start()</code>:</p>
+      
+<pre><code>start: function() {
+  if (gameRunning) {
+    botSays("Hey, pay attention. We've already started a game.");
+    botSays("The current hint is: <em>" + gameRecords.message + "</em>");
+  } else {
+    setRandomWord();
+  }
+}
+</code></pre>
+
+      <p>But how do we tell if the <code>gameRunning</code> is set? We'll need to update our init() to add a few hooks to listen for changes to our game state:</p>
+      
+<pre><code>gameChild.on('child_added', function(snapshot) {
+  if(snapshot.val() === null) {
+    gameRunning = false;
+    console.log('Error: No Game Running in Firebase!');
+  } else {
+    gameRunning = true;
+    gameRef = firebaseRef.child("game").child(snapshot.key());
+    gameRecords = snapshot.val();
+
+    selectedWord = gameRecords.word;
+    selectedHint = gameRecords.message;
+    usedLetters = gameRecords.usedLetters;
+
+  }
+});
+gameChild.on('child_changed', function(snapshot) {
+  if(snapshot.val() === null) {
+    gameRunning = false;
+    console.log('Error: No Game Running in Firebase!');
+  } else {
+    gameRunning = true;
+    gameRecords = snapshot.val();
+
+    selectedWord = gameRecords.word;
+    selectedHint = gameRecords.message;
+    usedLetters = gameRecords.usedLetters;
+
+  }
+});
+</code></pre>
+     
+      <p>Now when we push our gameState out on either <code>start()</code> or future updates, we can update our players on what's happening.</p>
+      
+      <p>Finally, we need some means to start our game from the chat. Let's update our <code>messageField.on()</code> handler to do a check for the "/start" command:</p>
+      
+<pre><code>messageField.on('keypress', function(e){
+  if(e.keyCode === 13) {
+    var message;
+    if (messageField.val() === '/start') {
+      
+      // Let's start a game
+      fireHangman.start();
+
+    } else {
+    
+    ...
+</code></pre>
+
+      <p><blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-04">step-04</a> folder for a solution.</blockquote></p>
+
+      <h3>
+        <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Defining our guess() method
+      </h3>
+      
+      <p>At this point, we have general chat, players, and the start of a game. But now we need to handle guesses and player turns so that we can actually finish a game! Let's start by adding a public method to our class called <code>guess()</code>:</p>
+      
+<pre><code>guess: function(letter) {
+  // guess and do some game things
+}
+</code></pre>
+
+      <p>Unlike our start method, guess takes an input from the user and checks to see if we have a hit. But even before we do that, we should probably check if it's our turn:</p>
+      
+<pre><code>guess: function(letter) {
+  if (gameRecords.turn === playerId) {
+    // run our letter check
+  } else {
+    botSays("Whooaaa there " + userId + ", it's not your turn. Slow your roll.");
+  }
+}
+</code></pre>
+
+      <p>Why does this work? Because of the <code>gameChild.on('child_changed', ...)</code>, we can expect that gameRecords is updated via the game state change in that handler and we can simply check against our playerId that was set during the <code>init()</code> <code>playersRef.transaction()</code>.</p>
+      
+      <p>Now that we know whether it's our turn our not, it's time to start guessing. Before we can even check our letter, first let's update a few variables we're going to need and then we can check our selected word:</p>
+      
+<pre><code>// we'll need to update the wordState
+var updateWord = updateBlanksForWord(letter);
+
+// Subtract a turn, use only if guess misses
+var turnsLeft = gameRecords.left - 1;
+
+// Add letter guess to usedLetters
+usedLetters = usedLetters + letter;
+        
+if (selectedWord.indexOf(letter) !== -1){
+
+  // we have a match!
+  
+} else {
+
+  // we have a miss!
+
+}
+</code></pre>
+
+      <p>Next, let's focus on the happy case where we're winning and have matched a letter. We know we need to update the game state and let people know who's turn it is (in this case, a match means the player keeps guessing until a miss occurs), but we also need to account for the case where we win:</p>
+      
+<pre><code>botSays("We have a hit captain!");
+
+if (gameRecords.word === updateWord) {
+  botSays("Winner winner firebase dinner! You did it " + userId + "! Answer:" + selectedWord);
+} else {
+  botSays("Turns left: " + gameRecords.left);
+  botSays("Word state: &lt;span class=&#039;blanks&#039;&gt;" + updateWord + "&lt;/span&gt;");
+}
+
+gameRef.update({
+  usedLetters: usedLetters,
+  wordState: updateWord,
+  turn: playerId,
+  left: gameRecords.left
+});
+</code></pre>
+
+      <p>Not too complex: we check the <code>gameRecords.word</code> against the updated word and if they match, we know the player has won the game. If not, we can simply let people know that the word state has changed and can update our existing game state.</p>
+
+      <p>What happens if we miss a letter? We'll need to some additional work. One, we have to change the player turn. Two, we have to check if the game is over due to running out of guesses. Three, we have to inform the next player it's there turn.</p>
+      
+<pre><code>botSays("We have missed, the meter grows towards game over.");
+
+if (turnsLeft === 0) {
+  botSays("It's game over mannnnn! Answer was: " + selectedWord);
+
+  gameRef.update({
+    left: 0
+  });
+
+} else {
+  botSays("Turns left: " + turnsLeft);
+  botSays("Word state: &lt;span class=&#039;blanks&#039;&gt;" + gameRecords.wordState + "&lt;/span&gt;");
+
+  // Increment the turn
+  playersRef.child(playerId+1).once('value', function(snapshot) {
+    var nextTurn = 0;
+
+    if (snapshot.val() !== null) {
+      nextTurn = playerId+1;
+    }
+
+    gameRef.update({
+      usedLetters: usedLetters,
+      wordState: updateWord,
+      turn: nextTurn,
+      left: turnsLeft
+    });
+
+    playersRef.child(nextTurn).once('value', function(snapshot) {
+      if (snapshot.val() !== null) {
+        botSays("It's your turn " + snapshot.val() + "! Guess with /guess {{letter}}");
+      }
+    });
+
+  });
+}
+</code></pre>
+      
+      <p>Things to note in the above code:</p>
+      
+      <ol>
+        <li>when <code>turnsLeft === 0</code>, we still push an update to the state of left because we'll need to inform other players the game has ended.</li>
+        <li>If the game isn't over, we need to grab the next child from our <code>playersRef</code> so that we can increment the turn. If that snapshot.val() is null, we simply go back to the first player.</li>
+        <li>We pull the snapshot.val() for the decided user so the bot can send a message.</li>
+      </ol>
+      
+      <p>We can make sure all clients are on the same page by reset the state when the game ends
+      by updating our <code>gameChild.on('child_changed', ...)</code> handler:</p>
+      
+<pre><code>
+  if (gameRecords.word === gameRecords.wordState || gameRecords.left === 0) {
+    gameRef.remove();
+    gameRunning = false;
+  }
+</code></pre>
+
+      <p>Finally, let's update our <code>messageField.on()</code> handler to do a check for the "/guess {{letter}}" command:</p>
+
+<pre><code>messageField.on('keypress', function(e){
+if(e.keyCode === 13) {
+
+  var message;
+
+  if (messageField.val() === '/start') {
+    
+    // Let's start a game
+    fireHangman.start();
+
+  } else if (new RegExp('\/guess', 'i').test(messageField.val())) {
+
+    // Looks like we're guessing a letter
+    var letter = messageField.val().slice(-1);
+    fireHangman.guess(letter);
+
+  } else {
+  ....
+</code></pre>
+      
+      <p><blockquote>Stuck? Check the <a href="https://github.com/GDGOakdale/firebase-web-codelab-gdg-oakdale/tree/master/step-03">step-05</a> folder for a solution.</blockquote></p>
+      
+      <h3>
+        <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Success!
+      </h3>
+
+      <p>Congratulations! You have completed this codelab! Have some extra time? Things for consideration:</p>
+
+      <ul>
+        <li>What if a player is gone? You could implement <a href="https://www.firebase.com/docs/web/guide/offline-capabilities.html">presence</a>.</li>
+        <li>Want to limit the amount of time a player can guess? Implement a timer that increments the turn after X amount of seconds.</li>
+        <li>Make it look pretty (pretty bare bones at the moment :-)</li>
+      </ul>
+
+      <h3>
+        <a id="getting-started" class="anchor" href="#more-events-please" aria-hidden="true">
+          <span class="octicon octicon-link"></span>
+        </a>Resources
+      </h3>
+
+      <ul>
+        <li><a href="https://www.firebase.com/docs/">Firebase Docs Home</a></li>
+        <li><a href="https://www.firebase.com/docs/web/examples.html">Firebase Web Code Examples</a></li>
+      </ul>
+
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/justinribeiro">justinribeiro</a> and <a href="https://github.com/jamesduvall">jamesduvall</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+  </body>
+</html>
