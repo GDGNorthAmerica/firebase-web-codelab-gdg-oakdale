@@ -152,7 +152,7 @@ var nameField = $("#name");</code></pre>
   }
 });</code></pre>
       
-      <p>Our messages are now being sync with Firebase.</p>
+      <p>Our messages are now being synced with Firebase.</p>
 
       <blockquote>To verify the messages are being sent, go directly to your Firebase url in your browser.  This is the Firebase Dashboard where you can view / edit your existing data.</blockquote>
 
@@ -296,7 +296,7 @@ var nameField = $("#name");</code></pre>
 
       <blockquote>Tip: The transaction code is based on the player assignment example: <a href="https://gist.github.com/anantn/4323981">firebase_player_assignment.js</a>. For more information on Firebase transactions see <a href="https://www.firebase.com/docs/web/api/firebase/transaction.html">Firebase.transaction()</a>.</blockquote>
 
-      <p>One this you probably noticed is that, where exactly is userId coming from? How is it in localStorage and what is it's purpose? We need some means to uniquely identify each player beyond the name they decide to enter. In this case, we'll add some code to our <code>$(document).ready()</code>:</p>
+      <p>One question you might have had is where exactly is userId coming from? How is it in localStorage and what is it's purpose? We need some means to uniquely identify each player beyond the name they decide to enter. In this case, we'll add some code to our <code>$(document).ready()</code>:</p>
 
 <pre><code>var userId;
 
@@ -623,7 +623,7 @@ if (turnsLeft === 0) {
       <p>Things to note in the above code:</p>
       
       <ol>
-        <li>when <code>turnsLeft === 0</code>, we still push an update to the state of left because we'll need to inform other players the game has ended.</li>
+        <li>when <code>turnsLeft === 0</code>, we still push an update to the state of <code>turnsLeft</code> because we'll need to inform other players the game has ended.</li>
         <li>If the game isn't over, we need to grab the next child from our <code>playersRef</code> so that we can increment the turn. If that snapshot.val() is null, we simply go back to the first player.</li>
         <li>We pull the snapshot.val() for the decided user so the bot can send a message.</li>
       </ol>
